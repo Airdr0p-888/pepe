@@ -534,6 +534,7 @@
   async function mint() {
     if (!tokenContract) return showMsg("请先加载合约信息", "err");
     if (!currentAccount) return showMsg("请先连接钱包", "err");
+    if (!signer) return showMsg("钱包未就绪，请重新连接后再铸造", "err");
     if (meta.price == 0n) return showMsg("合约价格尚未加载", "err");
 
     let n = parseInt($("mintQty").value || "1", 10);
@@ -543,8 +544,9 @@
       const price = meta.price;
       const cost = price * BigInt(n);
       const referrer = ZERO;
+      const c = tokenContract.connect(signer);
       showMsg("准备铸造 " + n + " 份，共 " + ethers.formatUnits(cost, 18) + " BNB，请在钱包确认…", "");
-      const tx = await tokenContract.mint(BigInt(n), referrer, cost, { value: cost });
+      const tx = await c.mint(BigInt(n), referrer, cost, { value: cost });
       showMsg("交易已提交：" + tx.hash, "ok");
       await tx.wait();
       showMsg("✅ 铸造成功（" + n + " 份），可在 BscScan 查看", "ok");
